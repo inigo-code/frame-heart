@@ -1824,6 +1824,27 @@ def test_colour_tags_survive_a_video() -> None:
     assert "-colorspace smpte170m" in text and "-color_primaries bt709" in text
 
 
+def test_old_folder_moves() -> None:
+    import home
+
+    with tempfile.TemporaryDirectory() as folder:
+        root = Path(folder)
+        (root / "Plates" / "models").mkdir(parents=True)
+        (root / "Plates" / "models" / "custom.json").write_text("{}", encoding="utf-8")
+        exe = root / "FrameHeart.exe"
+        exe.write_bytes(b"x")
+        moved = home.portable_home(exe)
+        assert moved.name == "FrameHeart"
+        assert (moved / "models" / "custom.json").is_file()
+        assert not (root / "Plates").exists()
+    with tempfile.TemporaryDirectory() as folder:
+        root = Path(folder) / "Plates"
+        root.mkdir()
+        exe = root / "FrameHeart.exe"
+        exe.write_bytes(b"x")
+        assert home.portable_home(exe).name == "Plates"
+
+
 def main() -> None:
     print("summary")
     test_done_line_counts_combine()
@@ -1871,6 +1892,8 @@ def main() -> None:
     test_auto_layout_does_not_force_gemini()
     print("session")
     test_session_stays_usable_after_download()
+    print("old folder")
+    test_old_folder_moves()
     print("auto only")
     test_auto_only_window()
     print("black backgrounds, every layout")
