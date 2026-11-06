@@ -21,6 +21,7 @@ import sys
 import tempfile
 import threading
 import zipfile
+from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
 
 import numpy as np
@@ -37,6 +38,7 @@ _NVENC: bool | None = None
 AUDIO_ARGS = ("-c:a", "aac", "-b:a", "192k")
 # Frames studied to learn a clip's own star.
 STUDY_FRAMES = 40
+STUDY_WORKERS = min(8, os.cpu_count() or 4)
 # How FFmpeg names a matrix for its scaler, by the name ffprobe reports.
 _MATRICES = {
     "bt709": "bt709",
@@ -570,13 +572,16 @@ def _find_video_mark(ffmpeg, source, width, height, fps, frames, engine, mode, m
         return last, None
     candidates.sort(key=lambda item: item[2])
     info, fn, _score = candidates[0]
-    study: list[np.ndarray] = []
-    for moment in _study_times(frames, fps):
+    def read(moment: float):
         if cancel is not None and cancel.is_set():
-            return CleanInfo("failed", "Stopped"), None
-        frame = _frame_at(ffmpeg, source, width, height, moment, accurate=moment < 2.0)
-        if frame is not None:
-            study.append(_fit_even(frame))
+            return None
+        return _frame_at(ffmpeg, source, width, height, moment, accurate=moment < 2.0)
+
+    # Each read is its own short FFmpeg run, so they can overlap.
+    with ThreadPoolExecutor(max_workers=STUDY_WORKERS) as pool:
+        study = [_fit_even(frame) for frame in pool.map(read, _study_times(frames, fps)) if frame is not None]
+    if cancel is not None and cancel.is_set():
+        return CleanInfo("failed", "Stopped"), None
     if isinstance(fn, LabelRepeater) and mark == "auto" and len(study) >= 3 and not fn.present_on(study):
         # Text that moves or changes is part of the picture, not a mark.
         return CleanInfo("skipped", "No visible mark found"), None

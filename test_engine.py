@@ -1105,8 +1105,8 @@ def _session_download_and_settings(events, called, Session, shell_text) -> None:
     assert "H.264" in shell
     assert 'id="bar"' in shell
     assert "Ready" in shell
-    assert "styles.css?v=23" in shell
-    assert "app.js?v=23" in shell
+    assert "styles.css?v=24" in shell
+    assert "app.js?v=24" in shell
     assert 'id="intro"' in shell
     assert "Originals stay where they are" in shell
     assert 'id="app-version"' in shell

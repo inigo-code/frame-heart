@@ -1218,10 +1218,18 @@ class Session:
                 if scaler.device == "CPU" and entry is not None and entry.heavy:
                     self._emit("log", f"{entry.title} on CPU is slow for large images.")
                 self._emit("state", self.snapshot())
-            try:
-                self._send_preview(jobs[0][0], task, mode, model, scale, folder, mark, combine)
-            except Exception as error:
-                self._emit("log", f"Preview failed. {error}")
+            def show_first() -> None:
+                try:
+                    self._send_preview(jobs[0][0], task, mode, model, scale, folder, mark, combine)
+                except Exception as error:
+                    self._emit("log", f"Preview failed. {error}")
+
+            # Cleaning needn't wait for the preview. Upscaling shares the graphics
+            # model with its preview, so that still goes first.
+            if scaler is None:
+                threading.Thread(target=show_first, daemon=True).start()
+            else:
+                show_first()
             last_emit = 0.0
             for index, (source, dest) in enumerate(jobs, start=1):
                 ident = _path_id(source)

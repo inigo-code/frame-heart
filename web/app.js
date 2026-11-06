@@ -247,9 +247,13 @@
   function renderQueue(state) {
     const host = document.getElementById("queue");
     if (!host) return;
+    const items = state.queue || [];
+    // Rebuilding a list that hasn't changed loses a click in progress.
+    const sig = JSON.stringify([state.running, items.map(function (item) { return [item.id, item.status, item.detail]; })]);
+    if (host.dataset.sig === sig) return;
+    host.dataset.sig = sig;
     const top = host.scrollTop;
     host.replaceChildren();
-    const items = state.queue || [];
     if (!items.length) {
       const empty = document.createElement("p");
       empty.className = "queue-empty";
