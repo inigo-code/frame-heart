@@ -1,6 +1,6 @@
 # Frame Heart
 
-Version **1.2.1**.
+Version **1.2.2**.
 
 A portable Windows app that finds and removes a visible corner watermark on AI images and videos, and can enlarge images with Real-ESRGAN. One of the [Heart Apps](https://inigo-code.github.io/).
 

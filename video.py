@@ -36,7 +36,7 @@ _NVENC_LIMIT = 4096
 _NVENC: bool | None = None
 AUDIO_ARGS = ("-c:a", "aac", "-b:a", "192k")
 # Frames studied to learn a clip's own star.
-STUDY_FRAMES = 24
+STUDY_FRAMES = 40
 # How FFmpeg names a matrix for its scaler, by the name ffprobe reports.
 _MATRICES = {
     "bt709": "bt709",

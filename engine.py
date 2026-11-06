@@ -44,6 +44,17 @@ PATCH_MARGIN = 3
 # Removal has to erase the sparkle outline. Above this, the outline survived
 # or the subtraction invented edges, which is what happens on a clean photo.
 MAX_SURVIVAL = 0.80
+SETTLE_EDGE = 3
+SETTLE_REACH = 6
+QUIET_RING = 14.0
+MIN_QUIET_FRAMES = 6
+MIN_BLEND_RANGE = 50.0
+DARK_WEIGHT = 30.0
+DARK_SCENE = 70.0
+RIM_JUMP = 0.35
+MAX_FRAME_STRENGTH = 1.2
+SHADOW_FLOOR = 0.85
+MAX_SHADOW_LIFT = 40.0
 # Leftover outline energy, compared with the same shape measured on nearby
 # patches of the same photo. Content that merely sits in the corner fails here.
 MAX_CONTROL_RATIO = 3.0
@@ -386,14 +397,16 @@ def _fill_clipped(plane: np.ndarray, hole: np.ndarray) -> np.ndarray:
     return out
 
 
-def _reverse_region(region: np.ndarray, alpha: np.ndarray, fill: bool = True) -> np.ndarray:
+def _reverse_region(
+    region: np.ndarray, alpha: np.ndarray, fill: bool = True, value: float = LOGO_VALUE
+) -> np.ndarray:
     """Undo a white alpha blend. region is uint8 HxWx3, alpha is float HxW.
 
     Scoring passes fill=False. Holes only matter on the pixels that get saved.
     """
     blended = region.astype(np.float32)
     clamped = np.minimum(alpha, MAX_ALPHA)
-    restored = (blended - clamped[..., None] * LOGO_VALUE) / (1.0 - clamped[..., None])
+    restored = (blended - clamped[..., None] * value) / (1.0 - clamped[..., None])
     keep = alpha >= ALPHA_THRESHOLD
     mixed = np.where(keep[..., None], restored, blended)
     # Dark JPEG pixels can sit below alpha*255, so the formula goes negative
@@ -933,6 +946,127 @@ def _soften_dark(region: np.ndarray, alpha: np.ndarray) -> np.ndarray:
     return np.clip(np.rint(pixels * (1.0 - weight) + blurred * weight), 0, 255).astype(np.uint8)
 
 
+def _spread(plane: np.ndarray, radius: int) -> np.ndarray:
+    """Box blur for small padded crops, where the wrap-around is empty."""
+    out = plane.astype(np.float32, copy=True)
+    for axis in (0, 1):
+        total = out.copy()
+        for step in range(1, radius + 1):
+            total = total + np.roll(out, step, axis) + np.roll(out, -step, axis)
+        out = total / float(2 * radius + 1)
+    return out
+
+
+def _settle_star(found: np.ndarray, base: np.ndarray, shape: np.ndarray) -> np.ndarray:
+    """Keep what a clip taught us about the star, and drop the scenery it picked up.
+
+    The star's middle is smooth. Anything sharp in there is scene detail the
+    median could not remove, and reversing it would stamp a black mark on every
+    frame. So the middle keeps only broad differences from the capture, while
+    the edge keeps its detail, because that is where the two really differ.
+    """
+    middle = ~_grow(shape <= 0.02, SETTLE_EDGE)
+    if int(middle.sum()) < 16:
+        return found
+    inside = middle.astype(np.float32)
+    broad = _spread((found - base) * inside, SETTLE_REACH) / np.maximum(_spread(inside, SETTLE_REACH), 1e-3)
+    ramp = _spread(inside, 1) * inside
+    return found + ramp * (base + broad - found)
+
+
+def _luma(rgb: np.ndarray) -> np.ndarray:
+    return rgb[..., 0] * 0.2126 + rgb[..., 1] * 0.7152 + rgb[..., 2] * 0.0722
+
+
+def _reverse_frame(
+    region: np.ndarray, alpha: np.ndarray, gains: np.ndarray | None = None, values: np.ndarray | None = None
+) -> np.ndarray:
+    """Reverse a star in a video frame, whose colour is stored at half resolution.
+
+    Sharp alpha suits brightness. Colour was smeared across two pixels when the
+    video was saved, so sharp alpha on colour leaves a tinted outline.
+    """
+    gains = np.ones(3, dtype=np.float32) if gains is None else gains
+    values = np.full(3, LOGO_VALUE, dtype=np.float32) if values is None else values
+    soft = alpha.copy()
+    for axis in (0, 1):
+        soft = (np.roll(soft, 1, axis) + 2.0 * soft + np.roll(soft, -1, axis)) * 0.25
+    sharp = np.concatenate(
+        [
+            _reverse_region(region[..., c : c + 1], alpha * float(gains[c]), value=float(values[c]))
+            for c in range(3)
+        ],
+        axis=2,
+    ).astype(np.float32)
+    # Left unclipped: cutting off at black here would bend the colour it carries.
+    shade = np.minimum(soft[..., None] * gains, MAX_ALPHA)
+    colour = (region.astype(np.float32) - shade * values) / (1.0 - shade)
+    mixed = _luma(sharp)[..., None] + colour - _luma(colour)[..., None]
+    return np.clip(np.rint(mixed), 0, 255).astype(np.uint8)
+
+
+def _learn_blend(
+    crops: list[np.ndarray], star: np.ndarray, hole: np.ndarray
+) -> tuple[np.ndarray, np.ndarray] | None:
+    """Measure how this clip's star really blends, one colour at a time.
+
+    Compression and colour conversion leave the star a little off pure white,
+    which over-darkens bright scenes or leaves dark ones lit. Frames where the
+    star sits over quiet scenery show the true line between background and
+    result, as long as the clip covers enough dark and bright.
+    """
+    core = star > 0.8 * float(star.max())
+    around = ~hole
+    if int(core.sum()) < 16:
+        return None
+    rows = []
+    for crop in crops:
+        pixels = crop.astype(np.float32)
+        ring = pixels[around]
+        if float(ring.mean(axis=1).std()) > QUIET_RING:
+            continue
+        rows.append(np.concatenate((ring.mean(axis=0), pixels[core].mean(axis=0))))
+    if len(rows) < MIN_QUIET_FRAMES:
+        return None
+    table = np.array(rows, dtype=np.float64)
+    level = float(star[core].mean())
+    gains = np.ones(3, dtype=np.float32)
+    values = np.full(3, LOGO_VALUE, dtype=np.float32)
+    for c in range(3):
+        back = table[:, c]
+        if float(back.max() - back.min()) < MIN_BLEND_RANGE:
+            return None
+        # Dark scenes count most. A few levels off shows there, and not on a bright wall.
+        slope, cut = np.polyfit(back, table[:, 3 + c], 1, w=1.0 / (1.0 + back / DARK_WEIGHT))
+        strength = 1.0 - float(slope)
+        if strength <= 0.02:
+            return None
+        value = float(np.clip(cut / strength, 225.0, LOGO_VALUE))
+        if value != cut / strength:
+            # The colour hit its limit, so settle the strength against that limit.
+            room = value - back
+            strength = float(((table[:, 3 + c] - back) * room).sum() / max(float((room * room).sum()), 1.0))
+        dark = back < DARK_SCENE
+        if int(dark.sum()) >= 3:
+            # Settle the strength on the dark frames themselves, where a miss shows.
+            room = value - back[dark]
+            strength = float(np.median((table[dark, 3 + c] - back[dark]) / np.maximum(room, 1.0)))
+        values[c] = value
+        gains[c] = float(np.clip(strength / max(level, 1e-3), 0.8, 1.25))
+    return gains, values
+
+
+def _star_rim(star: np.ndarray) -> np.ndarray:
+    """The thin line where the star's alpha jumps."""
+    high = star.copy()
+    low = star.copy()
+    for axis in (0, 1):
+        for step in (1, -1):
+            high = np.maximum(high, np.roll(star, step, axis))
+            low = np.minimum(low, np.roll(star, step, axis))
+    return (high - low) > RIM_JUMP * float(star.max())
+
+
 def apply_sparkle(rgb: np.ndarray, match: Match) -> np.ndarray:
     """Reverse one known sparkle. Later video frames reuse the first match."""
     size = match.size
@@ -1224,6 +1358,11 @@ class SparkleRepeater:
         self.gated = False
         self._alpha: np.ndarray | None = None
         self._strength = 0.0
+        self._gains: np.ndarray | None = None
+        self._values: np.ndarray | None = None
+        self._rim: np.ndarray | None = None
+        self._ring: np.ndarray | None = None
+        self._area: np.ndarray | None = None
 
     def _crop(self, frame: np.ndarray) -> np.ndarray | None:
         match = self.match
@@ -1267,9 +1406,17 @@ class SparkleRepeater:
         motion = float(np.median(layers.std(axis=0)[hole]))
         drift = MAX_ALPHA_DRIFT if texture <= 6.0 else float(np.clip(2.0 * motion, 0.02, MAX_ALPHA_DRIFT))
         found = np.clip(found, base - drift, base + drift)
+        found = _settle_star(found, base, shape)
         found = np.where(hole, np.clip(found, 0.0, MAX_ALPHA), 0.0).astype(np.float32)
         self._alpha = found[pad:-pad, pad:-pad]
         self._strength = typical
+        self._rim = _star_rim(found)
+        self._ring = ~hole
+        self._area = _spread(hole.astype(np.float32), 1) * hole
+        chosen = [crop for crop, here in zip(crops, present) if here]
+        blend = _learn_blend(chosen, found, hole)
+        if blend is not None:
+            self._gains, self._values = blend
         steady = float(strengths[present].std()) <= 0.12 * max(typical, 0.05)
         self.gated = not (bool(present.all()) and steady)
 
@@ -1286,7 +1433,7 @@ class SparkleRepeater:
             k, _rest, _back = _fit_opacity(crop.astype(np.float32).mean(axis=2), unit, _grow(unit > 0.0, 1))
             if k < 0.2:
                 return frame
-            amount = min(1.0, k)
+            amount = min(MAX_FRAME_STRENGTH, k)
             # Texture can fake an opacity. Reversal only erases an outline that is there.
             margin = pad - PATCH_MARGIN
             patch = crop[margin:-margin, margin:-margin]
@@ -1308,9 +1455,39 @@ class SparkleRepeater:
         if x < 0 or y < 0:
             return frame
         out = frame.copy()
-        cleaned = _reverse_region(frame[y : y + size, x : x + size], alpha * amount)
+        cleaned = _reverse_frame(frame[y : y + size, x : x + size], alpha * amount, self._gains, self._values)
         out[y : y + size, x : x + size] = _soften_dark(cleaned, alpha * amount)
+        self._lift_shadows(out)
+        self._heal_rim(out)
         return out
+
+    def _lift_shadows(self, frame: np.ndarray) -> None:
+        """Nothing under the star should be darker than the darks around it.
+
+        On a frame where the star came out weak, reversal takes too much and
+        digs a black spot. The scenery around it sets the floor.
+        """
+        crop = self._crop(frame)
+        if crop is None or self._ring is None:
+            return
+        pixels = crop.astype(np.float32)
+        light = _luma(pixels)
+        floor = SHADOW_FLOOR * float(np.percentile(light[self._ring], 5))
+        lift = np.minimum(np.maximum(floor - _spread(light, 2), 0.0), MAX_SHADOW_LIFT) * self._area
+        if float(lift.max()) >= 1.0:
+            crop[...] = np.clip(np.rint(pixels + lift[..., None]), 0, 255).astype(np.uint8)
+
+    def _heal_rim(self, frame: np.ndarray) -> None:
+        """The edge is the one line reversal cannot get right on a compressed
+        frame, and it is what the eye finds. Grow it in from both sides."""
+        rim = self._rim
+        crop = self._crop(frame)
+        if rim is None or crop is None or not rim.any():
+            return
+        pixels = crop.astype(np.float32)
+        for c in range(3):
+            pixels[..., c] = np.where(rim, _fill_hole(pixels[..., c], rim), pixels[..., c])
+        crop[...] = np.clip(np.rint(pixels), 0, 255).astype(np.uint8)
 
 
 class LabelRepeater:
