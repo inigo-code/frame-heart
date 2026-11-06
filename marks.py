@@ -308,7 +308,7 @@ def _unblend(region: np.ndarray, mask: np.ndarray, strict: bool = True) -> np.nd
     """
     from engine import _fill_hole, _grow
 
-    hole = _grow(mask, 1)
+    hole = _grow(_whole_label(region, mask), 2)
     ys, xs = np.nonzero(hole)
     if xs.size == 0:
         return None
@@ -330,6 +330,26 @@ def _unblend(region: np.ndarray, mask: np.ndarray, strict: bool = True) -> np.nd
     if strict and (float(changed.mean()) < 8.0 or float(changed.mean()) > 170.0):
         return None
     return np.clip(np.rint(out), 0, 255).astype(np.uint8)
+
+
+def _whole_label(region: np.ndarray, mask: np.ndarray) -> np.ndarray:
+    """Add the soft edges around a label's strokes.
+
+    Detection keeps only the strong stroke centers. Filling just those leaves a
+    ghost of the letters, so the fainter pixels inside the label's box join in.
+    """
+    ys, xs = np.nonzero(mask)
+    if xs.size == 0:
+        return mask
+    height, width = mask.shape
+    y0, y1 = max(0, int(ys.min()) - 3), min(height, int(ys.max()) + 4)
+    x0, x1 = max(0, int(xs.min()) - 3), min(width, int(xs.max()) + 4)
+    gray = region.astype(np.float32).mean(axis=2)
+    lift = gray - _open_h(gray, int(np.clip(width / 28, 10, 22)))
+    floor = max(5.0, 0.18 * float(np.median(lift[mask])))
+    soft = np.zeros_like(mask)
+    soft[y0:y1, x0:x1] = lift[y0:y1, x0:x1] >= floor
+    return mask | soft
 
 
 def _min_filter_h(channel: np.ndarray, radius: int) -> np.ndarray:

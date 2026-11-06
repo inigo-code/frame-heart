@@ -1,6 +1,6 @@
 # Plates
 
-Version **1.1.0**.
+Version **1.1.1**.
 
 A portable Windows app that finds and removes a visible corner watermark on AI images and videos, and can enlarge images with Real-ESRGAN. Part of [Backlot](https://inigo-code.github.io/backlot-site/).
 

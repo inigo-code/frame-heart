@@ -999,7 +999,7 @@ def test_other_platform_marks() -> None:
     changed = np.any(marked != plain, axis=2)
     error = np.abs(cleaned.astype(np.int16) - plain.astype(np.int16))[changed].mean()
     assert error < 8, error
-    near = _grow(changed, 2)
+    near = _grow(changed, 4)
     assert np.array_equal(cleaned[~near], plain[~near])
 
     solid = plain.copy()
@@ -1016,7 +1016,7 @@ def test_other_platform_marks() -> None:
     changed = np.any(grok != plain, axis=2)
     error = np.abs(cleaned.astype(np.int16) - plain.astype(np.int16))[changed].mean()
     assert error < 8, error
-    near = _grow(changed, 2)
+    near = _grow(changed, 4)
     assert np.array_equal(cleaned[~near], plain[~near])
     forced, forced_info = remove_visible(engine, grok, "auto", "grok")
     assert forced_info.detail == "Grok mark", forced_info.detail
@@ -1110,7 +1110,7 @@ def _session_download_and_settings(events, called, Session, shell_text) -> None:
     assert 'id="intro"' in shell
     assert "Originals stay where they are" in shell
     assert 'id="app-version"' in shell
-    assert "v1.1.0" in shell
+    assert "v1.1.1" in shell
     assert 'picturesOnly ? "Folder of images"' in shell
     assert "Drop images, videos, or a folder" in shell
     assert "is-log-collapsed" in shell

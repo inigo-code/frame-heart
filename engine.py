@@ -412,14 +412,15 @@ def _fill_hole(plane: np.ndarray, hole: np.ndarray) -> np.ndarray:
         return out
     out[hole] = float(out[clear].mean())
     for step in (8, 4, 2, 1):
-        for _ in range(8 if step > 1 else 14):
+        for _ in range(8 if step > 1 else 24):
             mean = (
                 np.roll(out, step, axis=0)
                 + np.roll(out, -step, axis=0)
                 + np.roll(out, step, axis=1)
                 + np.roll(out, -step, axis=1)
             ) * 0.25
-            out[hole] = mean[hole]
+            # Half steps. A plain average flips odd and even pixels into a checker.
+            out[hole] = 0.5 * out[hole] + 0.5 * mean[hole]
     return out
 
 
