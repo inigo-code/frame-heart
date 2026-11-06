@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>Frame Heart</title>
     <style>html, body { margin: 0; background: #100f0e; }</style>
-    <link rel="stylesheet" href="styles.css?v=21" />
+    <link rel="stylesheet" href="styles.css?v=22" />
   </head>
   <body>
     <div class="app">
@@ -17,7 +17,7 @@
         <nav class="tabs" aria-label="Sections">
           <button type="button" class="tab is-on" data-task="clean">
             <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m5 19 9.5-9.5 3 3L8 22H5zM14 6l1-3 1 3 3 1-3 1-1 3-1-3-3-1z"/></svg>
-            Remove
+            Clean
           </button>
           <button type="button" class="tab" data-task="upscale">
             <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 4H4v5M15 4h5v5M9 20H4v-5M15 20h5v-5"/></svg>
@@ -34,17 +34,17 @@
         </nav>
         <div class="side-foot">
           <span id="device" class="device" hidden></span>
-          <span class="meta"><span id="app-version">v1.2.0</span> · <span id="credit">A Heart App by Inigo</span></span>
+          <span class="meta"><span id="app-version">v1.2.1</span> · <span id="credit">A Heart App by Inigo</span></span>
         </div>
       </aside>
 
       <main class="workspace">
         <header class="work-head">
-          <h1 id="title">Remove</h1>
+          <h1 id="title">Clean</h1>
           <div class="page-tools">
             <button type="button" class="btn quiet" id="open-folder">Open folder</button>
             <button type="button" class="btn" id="preview">Preview</button>
-            <button type="button" class="btn primary" id="start">Remove</button>
+            <button type="button" class="btn primary" id="start">Clean</button>
           </div>
         </header>
 
@@ -96,7 +96,7 @@
                 </div>
               </div>
               <label class="check"><input id="recursive" type="checkbox" checked /> Include subfolders</label>
-              <label class="check" id="combine-row"><input id="combine" type="checkbox" /> Upscale after removing</label>
+              <label class="check" id="combine-row"><input id="combine" type="checkbox" /> Upscale after cleaning</label>
               <p class="selection" id="selection-row" hidden>
                 <span>Selected</span>
                 <b id="selection"></b>
@@ -163,9 +163,8 @@
           <section class="queue-card" id="queue-card" hidden>
             <div class="panel-head">
               <span class="grow"></span>
-              <button type="button" class="btn small" id="queue-stop">Stop</button>
               <button type="button" class="btn small" id="queue-clear">Clear finished</button>
-              <button type="button" class="btn small" id="queue-remove-all">Remove all</button>
+              <button type="button" class="btn small" id="queue-remove-all">Clear list</button>
             </div>
             <div id="queue" class="queue"></div>
             <p id="queue-more" class="hint" hidden></p>
@@ -187,13 +186,13 @@
       <div class="dialog" role="dialog" aria-modal="true" aria-labelledby="intro-title">
         <h2 id="intro-title">Originals stay where they are</h2>
         <ul>
-          <li>Remove finds and cleans a visible corner watermark on pictures and videos by itself.</li>
+          <li>Clean finds a visible corner watermark on pictures and videos, and takes it off by itself.</li>
           <li>Upscale enlarges pictures. Videos are cleaned, not enlarged.</li>
           <li>Drop a folder or files, check where they save, then start.</li>
         </ul>
         <button type="button" class="btn primary wide" id="intro-continue">Get started</button>
       </div>
     </div>
-    <script src="app.js?v=21"></script>
+    <script src="app.js?v=22"></script>
   </body>
 </html>

@@ -176,7 +176,7 @@ input[type="checkbox"] { width: 15px; height: 15px; margin: 0; }
 .queue-card { display: flex; flex-direction: column; gap: 8px; height: 100%; padding: 14px 18px; }
 .queue { flex: 1 1 0; min-height: 0; overflow: auto; }
 .queue-empty { margin: 48px 0 0; color: var(--muted); text-align: center; }
-.queue-row { display: grid; grid-template-columns: minmax(0, 1fr) 96px auto auto; align-items: center; gap: 8px; min-height: 38px; padding: 4px 8px; border-bottom: 1px solid var(--line); }
+.queue-row { display: grid; grid-template-columns: minmax(0, 1fr) 96px auto; align-items: center; gap: 8px; min-height: 38px; padding: 4px 8px; border-bottom: 1px solid var(--line); }
 .queue-row:hover { background: var(--surface); }
 .queue-name { overflow: hidden; font-weight: 500; text-overflow: ellipsis; white-space: nowrap; }
 .queue-status { color: var(--muted); font-size: 13px; font-weight: 600; }

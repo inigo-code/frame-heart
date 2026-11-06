@@ -224,8 +224,6 @@
 
     paintProgress(state.progress || 0, state.progressLabel || "Ready");
     renderQueue(state);
-    const stop = document.getElementById("queue-stop");
-    stop.disabled = !state.running;
   }
 
   function renderQueue(state) {
@@ -243,9 +241,9 @@
     const labels = {
       waiting: "Waiting",
       running: "Running",
-      removed: "Removed",
+      removed: "Cleaned",
       upscaled: "Upscaled",
-      unchanged: "Unchanged",
+      unchanged: "No mark",
       failed: "Failed",
       stopped: "Stopped"
     };
@@ -260,25 +258,21 @@
       const status = document.createElement("span");
       status.className = "queue-status " + (item.status || "waiting");
       status.textContent = labels[item.status] || item.status || "Waiting";
-      const cancel = document.createElement("button");
-      cancel.type = "button";
-      cancel.className = "btn";
-      cancel.dataset.act = "cancel";
-      cancel.textContent = "Cancel";
-      cancel.hidden = item.status !== "waiting" && item.status !== "running";
-      const remove = document.createElement("button");
-      remove.type = "button";
-      remove.className = "btn";
-      remove.dataset.act = "remove";
-      remove.textContent = "Remove";
-      row.append(name, status, cancel, remove);
+      // One button a row. It stops a running file, or takes a file off the list.
+      const action = document.createElement("button");
+      action.type = "button";
+      action.className = "btn";
+      const running = item.status === "running";
+      action.dataset.act = running ? "cancel" : "remove";
+      action.textContent = running ? "Cancel" : "Take off list";
+      row.append(name, status, action);
       host.appendChild(row);
     });
     host.scrollTop = top;
     const more = document.getElementById("queue-more");
     const extra = Number(state.queueMore || 0);
     more.hidden = extra <= 0;
-    more.textContent = extra > 0 ? extra + " more are not listed. Remove all still clears them." : "";
+    more.textContent = extra > 0 ? extra + " more are not listed. Clear list still takes them off." : "";
   }
 
   function call(name) {
@@ -363,7 +357,6 @@
       if (!row) return;
       call(button.dataset.act === "cancel" ? "queue_cancel" : "queue_remove", row.dataset.id || "");
     });
-    document.getElementById("queue-stop").addEventListener("click", function () { call("toggle"); });
     document.getElementById("queue-clear").addEventListener("click", function () { call("queue_clear_finished"); });
     document.getElementById("queue-remove-all").addEventListener("click", function () { call("queue_remove_all"); });
     document.getElementById("intro-continue").addEventListener("click", function () {

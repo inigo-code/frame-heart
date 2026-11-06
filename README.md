@@ -1,6 +1,6 @@
 # Frame Heart
 
-Version **1.2.0**.
+Version **1.2.1**.
 
 A portable Windows app that finds and removes a visible corner watermark on AI images and videos, and can enlarge images with Real-ESRGAN. One of the [Heart Apps](https://inigo-code.github.io/).
 
@@ -20,22 +20,22 @@ If `portable\FrameHeart\FrameHeart.exe` is present, `Start.bat` opens that inste
 
 ## Window
 
-The sidebar has Remove, Upscale, Queue, and Settings.
+The sidebar has Clean, Upscale, Queue, and Settings.
 
 1. Choose a folder, use **Add files**, or drop images, videos, or a folder onto the window.
 2. Confirm **Save to**. It defaults to a sibling folder named `YourFolder_cleaned`, or `YourFolder_upscaled` when pictures are being enlarged.
-3. On Remove, press **Remove**. Frame Heart finds the mark by itself. Turn on **Upscale after removing** to enlarge pictures in the same pass. Videos are cleaned, not enlarged.
+3. On Clean, press **Clean**. Frame Heart finds the mark by itself. Turn on **Upscale after cleaning** to enlarge pictures in the same pass. Videos are cleaned, not enlarged.
 4. On Upscale, pick a model. **Download** fetches one that is not included. **Add your own** takes an ncnn `.param` and `.bin` pair.
 5. **Preview** checks the first file. Drag across the picture to compare before and after.
-6. **Queue** lists every file. **Stop** halts the batch, and pressing Start again carries on from the file it stopped on. **Cancel** or **Remove** takes one file out. **Clear finished** drops files that already ran.
+6. **Queue** lists every file. Pressing Stop halts the batch, and starting again carries on from the file it stopped on. **Cancel** stops the file that is running, and **Take off list** drops a file from the batch. **Clear finished** drops files that already ran, and **Clear list** empties it. None of these touch your files.
 
 Settings holds the processor, JPEG and WebP quality, video compression, and the audio track. Upscale uses the graphics processor when GPU is selected and Vulkan is available. CPU is slower. A download keeps the rest of the window usable.
 
 ## Video
 
-Remove looks for the mark on up to seven frames across the clip. When it finds one, it studies frames from the whole clip to learn the star this clip actually carries, so dark scenes come out clean too. A frame that does not carry the mark is left as it was. A clip with no mark is copied unchanged. The soundtrack is kept unless **Keep the audio track** is turned off. The clip's color tags carry over to the new file.
+Clean looks for the mark on up to seven frames across the clip. When it finds one, it studies frames from the whole clip to learn the star this clip actually carries, so dark scenes come out clean too. A frame that does not carry the mark is left as it was. A clip with no mark is copied unchanged. The soundtrack is kept unless **Keep the audio track** is turned off. The clip's color tags carry over to the new file.
 
-Videos are not enlarged. **Upscale** skips a video. **Remove and upscale** cleans it and keeps its size. Pictures in the same batch are still enlarged.
+Videos are not enlarged. **Upscale** skips a video. **Clean and upscale** cleans it and keeps its size. Pictures in the same batch are still enlarged.
 
 Output is H.264. MP4, MOV, and MKV keep that container. WebM, M4V, and other files are saved as MP4. Kept audio is AAC at 192 kbps. Compression defaults to 18. When the frame fits, the NVIDIA encoder writes it. Larger frames, and computers without that encoder, use libx264 at the veryfast preset.
 

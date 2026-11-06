@@ -90,9 +90,9 @@ def _format_line(name: str, info: CleanInfo, combine: bool = False) -> str:
     if info.detail == "Stopped":
         return f"Stopped    {name}"
     if combine and info.status == "removed":
-        label = "Removed and upscaled"
+        label = "Cleaned and upscaled"
     else:
-        label = {"removed": "Removed  ", "skipped": "Unchanged", "upscaled": "Upscaled ", "failed": "Failed   "}.get(
+        label = {"removed": "Cleaned  ", "skipped": "No mark  ", "upscaled": "Upscaled ", "failed": "Failed   "}.get(
             info.status, info.status.ljust(9)
         )
     return f"{label}  {name}  {info.detail}"
@@ -109,13 +109,13 @@ def format_summary(
     """Counts for the Done line. Zero counts are left out."""
     parts = []
     if combined:
-        parts.append(f"{combined} removed and upscaled")
+        parts.append(f"{combined} cleaned and upscaled")
     if removed:
-        parts.append(f"{removed} removed")
+        parts.append(f"{removed} cleaned")
     if upscaled:
         parts.append(f"{upscaled} upscaled")
     if unchanged:
-        parts.append(f"{unchanged} unchanged")
+        parts.append(f"{unchanged} had no mark")
     if failed:
         parts.append(f"{failed} failed")
     if stopped:

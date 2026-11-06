@@ -522,7 +522,7 @@ def test_upscale() -> None:
         marked_bytes = marked_path.read_bytes()
         refused = process_file(engine, marked_path, root / "nope.png", task="both", upscaler=scaler, model="anime", scale=2)
         assert refused.status == "failed", refused.detail
-        assert refused.detail == "Choose Remove or Upscale."
+        assert refused.detail == "Choose Clean or Upscale."
         info = process_file(engine, marked_path, clean_path, task="clean")
         assert info.status == "removed", info.detail
         assert marked_path.read_bytes() == marked_bytes
@@ -1100,17 +1100,17 @@ def _session_download_and_settings(events, called, Session, shell_text) -> None:
     assert "Before and after" in shell
     assert "Settings" in shell
     assert 'data-task="both"' not in shell
-    assert "Upscale after removing" in shell
+    assert "Upscale after cleaning" in shell
     assert ">Selected<" in shell
     assert "H.264" in shell
     assert 'id="bar"' in shell
     assert "Ready" in shell
-    assert "styles.css?v=21" in shell
-    assert "app.js?v=21" in shell
+    assert "styles.css?v=22" in shell
+    assert "app.js?v=22" in shell
     assert 'id="intro"' in shell
     assert "Originals stay where they are" in shell
     assert 'id="app-version"' in shell
-    assert "v1.2.0" in shell
+    assert "v1.2.1" in shell
     assert 'picturesOnly ? "Folder of images"' in shell
     assert "Drop images, videos, or a folder" in shell
     assert "is-log-collapsed" in shell
@@ -1137,7 +1137,7 @@ def _session_download_and_settings(events, called, Session, shell_text) -> None:
         assert session.output.endswith("_upscaled")
         session.set_task("clean")
         snap = session.snapshot()
-        assert snap["action"] == "Remove and upscale"
+        assert snap["action"] == "Clean and upscale"
         assert session.output.endswith("_upscaled"), session.output
         session.set_combine(False)
         assert session.output.endswith("_cleaned"), session.output
@@ -1551,9 +1551,9 @@ def test_video_job_skips_enlarge() -> None:
             True,
         )
         logs = [data for name, data in events if name == "log"]
-        assert any("Removed" in line and "clip.mp4" in line for line in logs), logs
-        assert all("Removed and upscaled" not in line for line in logs), logs
-        assert any(line.startswith("Done.") and "1 removed" in line and "upscaled" not in line for line in logs), logs
+        assert any("Cleaned" in line and "clip.mp4" in line for line in logs), logs
+        assert all("Cleaned and upscaled" not in line for line in logs), logs
+        assert any(line.startswith("Done.") and "1 cleaned" in line and "upscaled" not in line for line in logs), logs
     finally:
         desktop_mod.process_file = original
         if previous is None:
@@ -1566,10 +1566,10 @@ def test_video_job_skips_enlarge() -> None:
 def test_done_line_counts_combine() -> None:
     from app import format_summary
 
-    assert format_summary(combined=6) == "6 removed and upscaled"
+    assert format_summary(combined=6) == "6 cleaned and upscaled"
     assert "upscaled" in format_summary(combined=6)
     assert "0 upscaled" not in format_summary(combined=6)
-    assert format_summary(removed=2, failed=1) == "2 removed, 1 failed"
+    assert format_summary(removed=2, failed=1) == "2 cleaned, 1 failed"
 
 
 def test_auto_only_window() -> None:
@@ -1824,6 +1824,35 @@ def test_colour_tags_survive_a_video() -> None:
     assert "-colorspace smpte170m" in text and "-color_primaries bt709" in text
 
 
+def test_clean_is_the_action_and_the_queue_speaks_plainly() -> None:
+    from desktop import _ACTIONS, _TITLES, shell_text
+
+    assert _TITLES["clean"] == "Clean" and _ACTIONS["clean"] == "Clean"
+    page = shell_text()
+    assert ">Clear list<" in page and 'id="queue-stop"' not in page
+    assert "Take off list" in page and ">Remove all<" not in page
+    assert 'row.append(name, status, action)' in page
+
+
+def test_show_selects_the_file_in_explorer() -> None:
+    import desktop
+
+    calls = []
+    real = desktop.subprocess.Popen
+    desktop.subprocess.Popen = lambda command, *a, **k: calls.append(command)
+    root = Path(tempfile.mkdtemp(prefix="gwr show "))
+    try:
+        target = root / "a file.png"
+        target.write_bytes(b"x")
+        session = desktop.Session(lambda name, data: None)
+        session.output = str(target)
+        session.open_output()
+        assert calls == [f'explorer /select,"{target}"'], calls
+    finally:
+        desktop.subprocess.Popen = real
+        shutil.rmtree(root, ignore_errors=True)
+
+
 def test_old_folder_moves() -> None:
     import home
 
@@ -1894,6 +1923,10 @@ def main() -> None:
     test_session_stays_usable_after_download()
     print("old folder")
     test_old_folder_moves()
+    print("plain wording")
+    test_clean_is_the_action_and_the_queue_speaks_plainly()
+    print("show in explorer")
+    test_show_selects_the_file_in_explorer()
     print("auto only")
     test_auto_only_window()
     print("black backgrounds, every layout")

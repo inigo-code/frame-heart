@@ -1080,7 +1080,7 @@ def process_file(
     """
     jpeg_quality = int(min(100, max(70, jpeg_quality)))
     if task not in {"clean", "upscale"}:
-        return CleanInfo("failed", "Choose Remove or Upscale.")
+        return CleanInfo("failed", "Choose Clean or Upscale.")
     combine = bool(combine)
     wants_remove = task == "clean" or combine
     wants_upscale = task == "upscale" or combine

@@ -46,8 +46,8 @@ _ANTI_FLASH = (
     "--disable-renderer-backgrounding "
     "--disable-background-timer-throttling"
 )
-_TITLES = {"clean": "Remove", "upscale": "Upscale", "settings": "Settings", "queue": "Queue"}
-_ACTIONS = {"clean": "Remove", "upscale": "Upscale", "settings": "Settings", "queue": "Queue"}
+_TITLES = {"clean": "Clean", "upscale": "Upscale", "settings": "Settings", "queue": "Queue"}
+_ACTIONS = {"clean": "Clean", "upscale": "Upscale", "settings": "Settings", "queue": "Queue"}
 _WORK = {"clean", "upscale"}
 _FINISHED = {"removed", "upscaled", "unchanged", "failed", "stopped"}
 
@@ -332,7 +332,7 @@ class Session:
         elif self.running:
             action = "Stop"
         elif self.combine and work == "clean" and visible != "settings":
-            action = "Remove and upscale"
+            action = "Clean and upscale"
         elif visible == "queue":
             action = _ACTIONS[work]
         else:
@@ -800,7 +800,7 @@ class Session:
             if preview and self.running:
                 return "Wait for this batch to finish."
             if self.task == "settings":
-                return "Open Remove or Upscale to process files."
+                return "Open Clean or Upscale to process files."
             task = self.task if self.task in _WORK else self.work_task
             model_id = self.model_id
             downloading = self.downloading
@@ -1120,7 +1120,7 @@ class Session:
             except ValueError:
                 phrase = ""
             if phrase and combine:
-                line = f"{line[:-1]}, remove and {phrase}."
+                line = f"{line[:-1]}, clean and {phrase}."
             elif phrase:
                 line = f"{line[:-1]}, {phrase}."
         if combine and has_video and has_image:
@@ -1334,7 +1334,7 @@ class Session:
                 self._preview_id = ""
                 self._preview_token += 1
         if busy:
-            self._emit("toast", {"kind": "warn", "text": "Stop the batch first."})
+            self._emit("toast", {"kind": "warn", "text": "Stop the batch before clearing the list."})
             return self.snapshot()
         self._emit_preview_clear()
         self._refresh_count()
@@ -1349,7 +1349,8 @@ class Session:
         path = Path(text)
         try:
             if path.is_file():
-                subprocess.Popen(["explorer", f"/select,{path}"])
+                # As one quoted argument Explorer can't read this, and opens Documents.
+                subprocess.Popen(f'explorer /select,"{path}"')
             else:
                 path.mkdir(parents=True, exist_ok=True)
                 subprocess.Popen(["explorer", str(path)])
