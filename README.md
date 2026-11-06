@@ -2,7 +2,7 @@
 
 Version **1.1.1**.
 
-A portable Windows app that finds and removes a visible corner watermark on AI images and videos, and can enlarge images with Real-ESRGAN. Part of [Backlot](https://inigo-code.github.io/backlot-site/).
+A portable Windows app that finds and removes a visible corner watermark on AI images and videos, and can enlarge images with Real-ESRGAN. Part of [Spoolhouse](https://inigo-code.github.io/spoolhouse-site/).
 
 It handles the Gemini sparkle, and the corner labels from Grok, Doubao, Jimeng, Tongyi, Qwen, Kling, Wenxin, and Veo. Detection is automatic. The Gemini mark is reversed, so the pixels underneath are restored. A label is rebuilt from the pixels around it. It does not touch SynthID or other invisible provenance marks.
 

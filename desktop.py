@@ -1,6 +1,6 @@
 """Window for the remover.
 
-Plates shares the Backlot look with Stills and Rushes. Watermark detection is
+Plates shares the Spoolhouse look with Stills and Rushes. Watermark detection is
 always automatic, so the window has no platform or layout choice. Model rows
 are redrawn in the page. Rebuilding native widgets after a download used to
 stop the window accepting input.
