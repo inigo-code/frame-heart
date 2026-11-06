@@ -50,6 +50,7 @@ _TITLES = {"clean": "Clean", "upscale": "Upscale", "settings": "Settings", "queu
 _ACTIONS = {"clean": "Clean", "upscale": "Upscale", "settings": "Settings", "queue": "Queue"}
 _WORK = {"clean", "upscale"}
 _FINISHED = {"removed", "upscaled", "unchanged", "failed", "stopped"}
+_DONE = {"removed", "upscaled", "unchanged"}
 
 
 def _path_id(path: Path) -> str:
@@ -231,6 +232,8 @@ class Session:
         self.extra: list[Path] = []
         self.queue: list[dict] = []
         self._removed: set[str] = set()
+        self._run_after_ffmpeg = False
+        self._pictures_only = False
         self._running_id = ""
         self.recursive = True
         self.quality = 95
@@ -426,7 +429,27 @@ class Session:
     def _emit_preview_clear(self) -> None:
         self._emit("preview", {"before": "", "after": "", "caption": ""})
 
-    def _mark_queue(self, source: Path, status: str, detail: str) -> None:
+    def _run_key(self, task: str, combine: bool) -> str:
+        """Files done under this key are done. Other work on them is new work."""
+        enlarge = task == "upscale" or combine
+        model = f"{self.model_id}|{self.scale}" if enlarge else ""
+        return f"{task}|{combine}|{model}|{self.output.strip()}"
+
+    def _still_owed(self, jobs: list, key: str) -> list:
+        """The files in this batch that this work hasn't finished yet."""
+        rows = {item["id"]: item for item in self.queue}
+        owed = []
+        for job in jobs:
+            row = rows.get(_path_id(job[0])) or {}
+            status = row.get("status")
+            done = status in _DONE and row.get("run") == key
+            if done and not Path(str(row.get("dest") or "")).exists():
+                done = False
+            if not done:
+                owed.append(job)
+        return owed
+
+    def _mark_queue(self, source: Path, status: str, detail: str, run: str = "", dest: Path | None = None) -> None:
         ident = _path_id(source)
         text = detail[:160]
         with self._lock:
@@ -436,6 +459,8 @@ class Session:
                 if item["id"] == ident:
                     item["status"] = status
                     item["detail"] = text
+                    item["run"] = run
+                    item["dest"] = str(dest) if dest is not None else ""
                     found = True
                     break
             if not found and status == "running":
@@ -846,6 +871,17 @@ class Session:
 
         return self._download_with(runner, kind="ffmpeg")
 
+    def get_ffmpeg_and_run(self) -> dict:
+        with self._lock:
+            self._run_after_ffmpeg = True
+        return self.download_ffmpeg()
+
+    def run_pictures_only(self) -> dict:
+        with self._lock:
+            self._pictures_only = True
+        self._start()
+        return self.snapshot()
+
     def _download_with(self, runner, kind: str = "model") -> dict:
         with self._lock:
             busy = self.downloading
@@ -912,7 +948,12 @@ class Session:
             self._emit("toast", {"kind": "critical", "text": error[:300]})
         else:
             self._emit("toast", {"kind": "ok", "text": f"{title} is ready."})
+        with self._lock:
+            start = self._run_after_ffmpeg and title == "FFmpeg" and not error
+            self._run_after_ffmpeg = False
         self._emit("state", self.snapshot())
+        if start:
+            self._start()
 
     def wait_download(self, timeout: float) -> bool:
         with self._lock:
@@ -1017,6 +1058,9 @@ class Session:
             folder = self.folder
             combine = self.combine and task == "clean"
             source = self._jobs()[0][0]
+        if is_video(source) and not _ffmpeg_ready():
+            self._emit("ffmpegNeeded", {"pictures": False})
+            return self.snapshot()
 
         def work() -> None:
             try:
@@ -1080,7 +1124,25 @@ class Session:
     def _start(self) -> None:
         reason = self._reject(False)
         if reason:
+            with self._lock:
+                self._pictures_only = False
             self._emit("toast", {"kind": "warn", "text": reason})
+            return
+        with self._lock:
+            if self.running:
+                return
+            work = self.task if self.task in _WORK else self.work_task
+            key = self._run_key(work, self.combine and work == "clean")
+            owed = self._still_owed(list(self._jobs()), key)
+            pictures_only = self._pictures_only
+            self._pictures_only = False
+        if pictures_only:
+            owed = [job for job in owed if not is_video(job[0])]
+        if not owed:
+            self._emit("toast", {"kind": "ok", "text": "Everything here is already done. To redo a file, take it off the list and add it again."})
+            return
+        if not _ffmpeg_ready() and any(is_video(job[0]) for job in owed):
+            self._emit("ffmpegNeeded", {"pictures": any(not is_video(job[0]) for job in owed)})
             return
         with self._lock:
             if self.running:
@@ -1101,12 +1163,7 @@ class Session:
             keep_audio = self.keep_audio
             video_crf = self.video_crf
             combine = self.combine and task == "clean"
-            jobs = list(self._jobs())
-            # After a Stop, pick up where it left off. A finished batch runs again in full.
-            finished = {item["id"] for item in self.queue if item.get("status") in _FINISHED}
-            owed = [job for job in jobs if _path_id(job[0]) not in finished]
-            if owed:
-                jobs = owed
+            jobs = owed
             self.progress_label = jobs[0][0].name if len(jobs) == 1 else f"0 of {len(jobs)}"
         if len(jobs) == 1:
             line = f"Starting {jobs[0][0].name}."
@@ -1129,7 +1186,7 @@ class Session:
         self._emit("state", self.snapshot())
         threading.Thread(
             target=self._run,
-            args=(jobs, task, mode, model, scale, quality, folder, mark, keep_audio, video_crf, combine),
+            args=(jobs, task, mode, model, scale, quality, folder, mark, keep_audio, video_crf, combine, key),
             daemon=True,
         ).start()
 
@@ -1146,6 +1203,7 @@ class Session:
         keep_audio: bool,
         video_crf: int,
         combine: bool,
+        key: str = "",
     ) -> None:
         started = time.perf_counter()
         removed = upscaled = unchanged = failed = stopped = combined = 0
@@ -1255,7 +1313,7 @@ class Session:
                 else:
                     failed += 1
                     row_status = "failed"
-                self._mark_queue(source, row_status, info.detail)
+                self._mark_queue(source, row_status, info.detail, key, dest)
                 self._emit("log", _format_line(name, info, file_combine))
                 done_ratio = 0.0 if total == 0 else index / total
                 done_label = f"{index} of {total} · {name}"
@@ -1407,6 +1465,12 @@ class Api:
 
     def download_ffmpeg(self) -> dict:
         return self._session.download_ffmpeg()
+
+    def get_ffmpeg_and_run(self) -> dict:
+        return self._session.get_ffmpeg_and_run()
+
+    def run_pictures_only(self) -> dict:
+        return self._session.run_pictures_only()
 
     def set_recursive(self, value: bool) -> dict:
         return self._session.set_recursive(value)
@@ -1560,6 +1624,7 @@ def launch() -> None:
         min_size=(960, 620),
         background_color="#100f0e",
         text_select=True,
+        confirm_close=True,
     )
     window.events.closed += api.request_stop
     window.events.loaded += lambda: _bind_drops(window, api)

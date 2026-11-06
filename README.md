@@ -2,7 +2,7 @@
 
 ![The Frame Heart window, with a before and after viewer](https://inigo-code.github.io/frame-heart-site/assets/remove-wide.webp)
 
-Version **1.2.2**.
+Version **1.2.3**.
 
 A portable Windows app that finds and removes a visible corner watermark on AI images and videos, and can enlarge images with Real-ESRGAN. One of the [Heart Apps](https://inigo-code.github.io/).
 

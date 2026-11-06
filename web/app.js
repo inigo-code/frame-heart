@@ -116,12 +116,30 @@
     button.disabled = false;
   }
 
+  function paintFfmpegAsk(state) {
+    const ask = document.getElementById("ffmpeg-ask");
+    if (ask.hidden) return;
+    if (state.ffmpegReady) {
+      ask.hidden = true;
+      return;
+    }
+    const busy = state.downloadKind === "ffmpeg" && state.downloading;
+    const pct = state.downloadPct;
+    document.getElementById("ffmpeg-ask-copy").textContent = busy
+      ? "Installing FFmpeg" + (pct == null ? "..." : " · " + pct + "%")
+      : "Frame Heart uses FFmpeg to read and write video. Install it now? It's a free download of about 115 MB, and it stays beside the app.";
+    document.getElementById("ffmpeg-ask-get").hidden = busy;
+    document.getElementById("ffmpeg-ask-later").textContent = busy ? "Cancel" : "Not now";
+    document.getElementById("ffmpeg-ask-later").dataset.busy = busy ? "1" : "";
+  }
+
   function render(state) {
     if (!state || !state.task) return;
     const settings = state.task === "settings";
     const queue = state.task === "queue";
     document.body.dataset.task = state.task;
     document.getElementById("intro").hidden = !!state.seenIntro;
+    paintFfmpegAsk(state);
     document.getElementById("title").textContent = state.title;
     if (state.version) document.getElementById("app-version").textContent = "v" + state.version;
     document.querySelectorAll(".tab").forEach(function (button) {
@@ -359,6 +377,21 @@
     });
     document.getElementById("queue-clear").addEventListener("click", function () { call("queue_clear_finished"); });
     document.getElementById("queue-remove-all").addEventListener("click", function () { call("queue_remove_all"); });
+    document.getElementById("ffmpeg-ask-get").addEventListener("click", function () {
+      document.getElementById("ffmpeg-ask-pictures").hidden = true;
+      call("get_ffmpeg_and_run");
+    });
+    document.getElementById("ffmpeg-ask-pictures").addEventListener("click", function () {
+      document.getElementById("ffmpeg-ask").hidden = true;
+      call("run_pictures_only");
+    });
+    document.getElementById("ffmpeg-ask-later").addEventListener("click", function () {
+      if (this.dataset.busy) {
+        call("cancel_download");
+        return;
+      }
+      document.getElementById("ffmpeg-ask").hidden = true;
+    });
     document.getElementById("intro-continue").addEventListener("click", function () {
       document.getElementById("intro").hidden = true;
       call("accept_intro");
@@ -436,10 +469,17 @@
         caption.textContent = has ? (data.caption || "") : "";
         caption.hidden = !has || !data.caption;
       } else if (message.name === "toast") toast(message.data);
-      else if (message.name === "download") {
+      else if (message.name === "ffmpegNeeded") {
+        document.getElementById("ffmpeg-ask-pictures").hidden = !(message.data && message.data.pictures);
+        document.getElementById("ffmpeg-ask-get").hidden = false;
+        document.getElementById("ffmpeg-ask").hidden = false;
+      } else if (message.name === "download") {
         const ffmpeg = message.data && message.data.kind === "ffmpeg";
         const button = document.getElementById(ffmpeg ? "download-ffmpeg" : "download");
         paintCancel(button, message.data.pct);
+        if (ffmpeg && !document.getElementById("ffmpeg-ask").hidden) {
+          paintFfmpegAsk({ downloadKind: "ffmpeg", downloading: true, downloadPct: message.data.pct, ffmpegReady: false });
+        }
       } else if (message.name === "progress") {
         const data = message.data || {};
         if (typeof data.ratio === "number") {

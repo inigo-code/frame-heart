@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>Frame Heart</title>
     <style>html, body { margin: 0; background: #100f0e; }</style>
-    <link rel="stylesheet" href="styles.css?v=22" />
+    <link rel="stylesheet" href="styles.css?v=23" />
   </head>
   <body>
     <div class="app">
@@ -193,6 +193,17 @@
         <button type="button" class="btn primary wide" id="intro-continue">Get started</button>
       </div>
     </div>
-    <script src="app.js?v=22"></script>
+    <div class="modal" id="ffmpeg-ask" hidden>
+      <div class="dialog" role="dialog" aria-modal="true" aria-labelledby="ffmpeg-ask-title">
+        <h2 id="ffmpeg-ask-title">Videos need FFmpeg</h2>
+        <p class="hint" id="ffmpeg-ask-copy">Frame Heart uses FFmpeg to read and write video. Install it now? It's a free download of about 115 MB, and it stays beside the app.</p>
+        <div class="dialog-actions">
+          <button type="button" class="btn primary" id="ffmpeg-ask-get">Install FFmpeg</button>
+          <button type="button" class="btn" id="ffmpeg-ask-pictures" hidden>Pictures only</button>
+          <button type="button" class="btn" id="ffmpeg-ask-later">Not now</button>
+        </div>
+      </div>
+    </div>
+    <script src="app.js?v=23"></script>
   </body>
 </html>
