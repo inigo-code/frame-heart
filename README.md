@@ -73,3 +73,11 @@ python app.py INPUT OUTPUT --task clean --video-crf 18
 - A star that has been heavily cropped, or sits outside the corner, is not found.
 - Photo, Anime detail, Nomos8k, Siax, UltraSharp, AnimeSharp, and Remacri are slow without a Vulkan GPU. General, Compact, and Anime are faster. Choose CPU in Settings, or pass `--device cpu`, to upscale on the CPU.
 - General, Compact, Nomos8k, and Siax download from the Upscayl custom-models repository. UltraSharp and Remacri download from the Upscayl application model folder. AnimeSharp downloads from the realesrgan-gui additional-models release. Anime detail downloads the official Real-ESRGAN ncnn package and keeps only that model. The first download needs a network connection.
+
+## Source
+
+This code is published so you can read it and build it yourself. All rights reserved: there is no open-source licence. Third-party parts keep their own licences, listed in [NOTICE](NOTICE).
+
+The bundled Photo and Anime models in `assets/models` aren't in this repository because of their size. Add them from the Real-ESRGAN ncnn release before building, or the app will offer only the models it can download.
+
+Downloads and the website: [Frame Heart](https://inigo-code.github.io/frame-heart-site/). Bugs and ideas: inigo@tosstheworld.org.
