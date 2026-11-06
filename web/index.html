@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Plates</title>
+    <style>html, body { margin: 0; background: #100f0e; }</style>
+    <link rel="stylesheet" href="styles.css?v=20" />
+  </head>
+  <body>
+    <div class="app">
+      <aside class="sidebar">
+        <div class="brand">
+          <img class="mark" src="plates.svg" width="34" height="34" alt="" />
+          <strong>Plates</strong>
+        </div>
+        <nav class="tabs" aria-label="Sections">
+          <button type="button" class="tab is-on" data-task="clean">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m5 19 9.5-9.5 3 3L8 22H5zM14 6l1-3 1 3 3 1-3 1-1 3-1-3-3-1z"/></svg>
+            Remove
+          </button>
+          <button type="button" class="tab" data-task="upscale">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 4H4v5M15 4h5v5M9 20H4v-5M15 20h5v-5"/></svg>
+            Upscale
+          </button>
+          <button type="button" class="tab" data-task="queue">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 6h13M8 12h13M8 18h13M3.5 6h.01M3.5 12h.01M3.5 18h.01"/></svg>
+            Queue
+          </button>
+          <button type="button" class="tab" data-task="settings">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h10M18 7h2M4 17h2M10 17h10"/><circle cx="16" cy="7" r="2"/><circle cx="8" cy="17" r="2"/></svg>
+            Settings
+          </button>
+        </nav>
+        <div class="side-foot">
+          <span id="device" class="device" hidden></span>
+          <span class="meta"><span id="app-version">v1.1.0</span> · <span id="credit">Made by Inigo</span></span>
+        </div>
+      </aside>
+
+      <main class="workspace">
+        <header class="work-head">
+          <h1 id="title">Remove</h1>
+          <div class="page-tools">
+            <button type="button" class="btn quiet" id="open-folder">Open folder</button>
+            <button type="button" class="btn" id="preview">Preview</button>
+            <button type="button" class="btn primary" id="start">Remove</button>
+          </div>
+        </header>
+
+        <div class="work-body">
+          <div class="stage is-log-collapsed" id="stage">
+            <section class="viewer">
+              <div class="compare is-empty" id="compare" style="--pos: 50%">
+                <img id="after" alt="" />
+                <img id="before" alt="" />
+                <span class="compare-bar" aria-hidden="true"></span>
+                <span class="compare-label left">Before</span>
+                <span class="compare-label right">After</span>
+                <div class="compare-empty">
+                  <svg viewBox="0 0 48 48" aria-hidden="true"><rect x="8" y="12" width="26" height="26" rx="4"/><path d="M15 12V9.5A3.5 3.5 0 0 1 18.5 6H37a4 4 0 0 1 4 4v18.5a3.5 3.5 0 0 1-3.5 3.5H34"/></svg>
+                  <strong>Drop images, videos or a folder</strong>
+                  <span>Originals are never changed. Clean copies go to a new folder.</span>
+                </div>
+                <input id="compare-range" type="range" min="0" max="100" value="50" aria-label="Before and after" />
+              </div>
+              <p id="caption" class="caption" hidden></p>
+            </section>
+
+            <section class="log-card is-collapsed" id="log-card">
+              <button type="button" class="log-head" id="log-toggle" aria-expanded="false" aria-controls="log">
+                <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg>
+                <span>Activity</span>
+                <span id="log-toggle-label" class="sr">Show</span>
+              </button>
+              <pre id="log"></pre>
+            </section>
+          </div>
+
+          <aside class="inspector" id="inspector">
+            <section class="panel" id="job-card">
+              <div class="field">
+                <label for="input">Files</label>
+                <input id="input" type="text" spellcheck="false" placeholder="Folder of images or videos" autocomplete="off" />
+                <div class="field-actions">
+                  <button type="button" class="btn small" id="browse-input">Choose folder</button>
+                  <button type="button" class="btn small" id="add-files">Add files</button>
+                  <span id="count" class="count">0 files</span>
+                </div>
+              </div>
+              <div class="field">
+                <label for="output">Save to</label>
+                <input id="output" type="text" spellcheck="false" placeholder="Folder for the new copies" autocomplete="off" />
+                <div class="field-actions">
+                  <button type="button" class="btn small" id="browse-output">Choose folder</button>
+                </div>
+              </div>
+              <label class="check"><input id="recursive" type="checkbox" checked /> Include subfolders</label>
+              <label class="check" id="combine-row"><input id="combine" type="checkbox" /> Upscale after removing</label>
+              <p class="selection" id="selection-row" hidden>
+                <span>Selected</span>
+                <b id="selection"></b>
+              </p>
+              <p class="hint" id="video-note" hidden></p>
+            </section>
+
+            <section class="panel model-card" id="model-card" hidden>
+              <div class="panel-head">
+                <h2>Model</h2>
+                <div class="seg" id="scales"></div>
+              </div>
+              <div id="models" class="models"></div>
+              <div class="field-actions">
+                <button type="button" class="btn small" id="add-model">Add your own</button>
+                <button type="button" class="btn small primary" id="download" hidden>Download</button>
+              </div>
+            </section>
+          </aside>
+
+          <div class="settings-grid" id="settings" hidden>
+            <section class="panel">
+              <div class="panel-head"><h2>Processor</h2></div>
+              <div class="seg" id="processor">
+                <button type="button" data-processor="gpu" class="is-on">GPU</button>
+                <button type="button" data-processor="cpu">CPU</button>
+              </div>
+              <p class="hint">Upscaling uses the graphics processor when GPU is selected. CPU is slower.</p>
+            </section>
+
+            <section class="panel">
+              <div class="panel-head"><h2>Pictures</h2></div>
+              <div class="set-line">
+                <span>JPEG and WebP quality</span>
+                <label class="slider">
+                  <input id="quality" type="range" min="80" max="100" value="95" aria-label="JPEG and WebP quality" />
+                  <b id="quality-value">95</b>
+                </label>
+              </div>
+              <p class="hint">PNG stays lossless.</p>
+            </section>
+
+            <section class="panel wide">
+              <div class="panel-head"><h2>Video</h2></div>
+              <div class="set-line">
+                <span>Compression</span>
+                <label class="slider">
+                  <input id="video-crf" type="range" min="16" max="28" value="18" aria-label="Video compression" />
+                  <b id="crf-value">18</b>
+                </label>
+              </div>
+              <p class="hint">18 keeps a sharp picture. A higher number makes a smaller file. Video is saved as H.264, and MP4, MOV and MKV keep their container. WebM and M4V become MP4.</p>
+              <label class="check"><input id="keep-audio" type="checkbox" checked /> Keep the audio track</label>
+              <div class="tool-row">
+                <div>
+                  <strong>FFmpeg</strong>
+                  <p id="ffmpeg-note" class="hint">FFmpeg is needed for video.</p>
+                </div>
+                <button type="button" class="btn primary" id="download-ffmpeg">Download FFmpeg</button>
+              </div>
+            </section>
+          </div>
+
+          <section class="queue-card" id="queue-card" hidden>
+            <div class="panel-head">
+              <span class="grow"></span>
+              <button type="button" class="btn small" id="queue-stop">Stop</button>
+              <button type="button" class="btn small" id="queue-clear">Clear finished</button>
+              <button type="button" class="btn small" id="queue-remove-all">Remove all</button>
+            </div>
+            <div id="queue" class="queue"></div>
+            <p id="queue-more" class="hint" hidden></p>
+          </section>
+        </div>
+
+        <footer class="runbar">
+          <div class="track"><b id="bar"></b></div>
+          <div class="run-line">
+            <span id="progress-label">Ready</span>
+            <span id="progress-pct">0%</span>
+          </div>
+        </footer>
+      </main>
+    </div>
+    <div class="toasts" id="toasts"></div>
+    <div class="drop-layer" id="drop-layer">Drop images, videos, or a folder</div>
+    <div class="modal" id="intro" hidden>
+      <div class="dialog" role="dialog" aria-modal="true" aria-labelledby="intro-title">
+        <h2 id="intro-title">Originals stay where they are</h2>
+        <ul>
+          <li>Remove finds and cleans a visible corner watermark on pictures and videos by itself.</li>
+          <li>Upscale enlarges pictures. Videos are cleaned, not enlarged.</li>
+          <li>Drop a folder or files, check where they save, then start.</li>
+        </ul>
+        <button type="button" class="btn primary wide" id="intro-continue">Get started</button>
+      </div>
+    </div>
+    <script src="app.js?v=20"></script>
+  </body>
+</html>

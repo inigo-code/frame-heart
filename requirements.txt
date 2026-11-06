@@ -1,0 +1,4 @@
+numpy>=2.0
+pillow>=10.4
+ncnn>=1.0.20250916
+pywebview>=5.0

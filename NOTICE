@@ -1,0 +1,93 @@
+Sparkle templates
+-----------------
+assets/bg_48.png
+assets/bg_96.png
+
+These are captures of the visible Gemini sparkle on a black background.
+They are used as the alpha template for reverse blending.
+
+Source: py-gemini-watermark-remover (MIT License)
+https://github.com/daniel-style/py-gemini-watermark-remover
+
+That project is a Python port of GeminiWatermarkTool by AllenK
+https://github.com/allenk/GeminiWatermarkTool
+
+assets/bg_96_20260520.png
+
+Fainter 96px sparkle used on the newer large-margin layout.
+
+Source: GeminiWatermarkRemover (MIT License)
+Copyright (c) 2025 PlayerYK
+https://github.com/PlayerYK/GeminiWatermarkRemover
+
+The removal formula itself is the inverse of ordinary alpha compositing.
+
+Upscale models
+--------------
+assets/models/realesrgan-x4plus.param
+assets/models/realesrgan-x4plus.bin
+assets/models/realesr-animevideov3-x2.param
+assets/models/realesr-animevideov3-x2.bin
+assets/models/realesr-animevideov3-x4.param
+assets/models/realesr-animevideov3-x4.bin
+
+Real-ESRGAN ncnn weights. Photo is realesrgan-x4plus.
+Anime is realesr-animevideov3, at 2x and 4x.
+
+Source: Real-ESRGAN (BSD 3-Clause License)
+Copyright (c) 2021 xinntao
+https://github.com/xinntao/Real-ESRGAN
+
+Taken from the realesrgan-ncnn-vulkan-20220424 Windows release.
+Inference uses the ncnn library (BSD 3-Clause, Tencent).
+
+Downloadable models
+-------------------
+These are not bundled. The app downloads them when asked and stores them
+in a models folder next to the program.
+
+RealESRGAN_General_x4_v3
+realesrgan-x4plus-anime
+
+Real-ESRGAN weights (BSD 3-Clause License)
+Copyright (c) 2021 xinntao
+https://github.com/xinntao/Real-ESRGAN
+
+General's ncnn pair is the conversion published in the Upscayl custom-models
+repository. Anime detail is extracted from the same 20220424 Windows release
+as the bundled models.
+
+4xNomos8kSC
+4xLSDIRCompactC3
+
+By Helaman (Phhofm). CC-BY-4.0. Credit required.
+https://openmodeldb.info/models/4x-Nomos8kSC
+https://openmodeldb.info/models/4x-LSDIRCompactC3
+
+The ncnn pairs are from the Upscayl custom-models repository
+https://github.com/upscayl/custom-models
+
+4x_NMKD-Siax_200k
+
+By n00mkrad (NMKD). The published model card describes the license as WTFPL.
+https://openmodeldb.info/
+
+The ncnn pair is from the Upscayl custom-models repository
+https://github.com/upscayl/custom-models
+
+UltraSharp, AnimeSharp, Remacri
+
+4x-UltraSharp and 4x-AnimeSharp by Kim2091. 4x Foolhardy Remacri by FoolhardyVEVO.
+These are not bundled. Each downloads only when asked. The authors publish their
+own terms on OpenModelDB, and those terms apply to what you make with them.
+https://openmodeldb.info/
+
+Fonts
+-----
+web/fonts: Figtree and Sora. SIL Open Font License 1.1.
+
+FFmpeg
+------
+Downloaded from Settings when asked, and kept beside the app. Not part of Plates.
+FFmpeg is licensed under the GPL in this build. https://ffmpeg.org/legal.html
+Build by Gyan Doshi. https://github.com/GyanD/codexffmpeg

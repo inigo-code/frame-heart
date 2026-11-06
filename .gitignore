@@ -1,0 +1,10 @@
+.venv/
+__pycache__/
+build/
+remover.log
+_ui_preview.png
+models/
+portable/
+tools/
+settings.json
+dist/
