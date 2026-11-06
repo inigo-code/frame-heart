@@ -1095,40 +1095,32 @@ def _session_download_and_settings(events, called, Session, shell_text) -> None:
     shell = shell_text()
     assert "<title>Plates</title>" in shell
     assert "<strong>Plates</strong>" in shell
-    assert "Built with" in shell and "Inigo" in shell
+    assert "Made by Inigo" in shell
     assert 'id="compare"' in shell
     assert "Before and after" in shell
     assert "Settings" in shell
-    assert "Watermark" in shell
-    assert "Gemini layout" in shell
-    assert "Standard corner" in shell
-    assert "Current corner" in shell
     assert 'data-task="both"' not in shell
-    assert "Remove and upscale" in shell
-    assert "Selected file" in shell
+    assert "Upscale after removing" in shell
+    assert ">Selected<" in shell
     assert "H.264" in shell
     assert 'id="bar"' in shell
     assert "Ready" in shell
-    assert ">Progress<" in shell
-    assert "styles.css?v=17" in shell
-    assert "app.js?v=17" in shell
+    assert "styles.css?v=20" in shell
+    assert "app.js?v=20" in shell
     assert 'id="intro"' in shell
-    assert "Before you start" in shell
     assert "Originals stay where they are" in shell
     assert 'id="app-version"' in shell
-    assert "v1.0.0" in shell
+    assert "v1.1.0" in shell
     assert 'picturesOnly ? "Folder of images"' in shell
     assert "Drop images, videos, or a folder" in shell
-    assert 'body[data-task="queue"] .preview-card' in shell
     assert "is-log-collapsed" in shell
-    assert "No preview" in shell
+    assert "Drop images, videos or a folder" in shell
     assert 'id="log-toggle"' in shell
     assert "Hide" in shell
     assert 'data-task="queue"' in shell
     assert "Clear finished" in shell
     assert "Videos are not upscaled." in shell
     assert "Videos are cleaned, not enlarged." in shell
-    assert "Videos are not enlarged." in shell
     for phrase in ("SynthID", "Originals stay in place", "Checking the GPU"):
         assert phrase not in shell, phrase
 
@@ -1879,6 +1871,8 @@ def main() -> None:
     test_auto_layout_does_not_force_gemini()
     print("session")
     test_session_stays_usable_after_download()
+    print("auto only")
+    test_auto_only_window()
     print("black backgrounds, every layout")
     test_black_backgrounds_every_layout()
     print("any margin, quickly")
