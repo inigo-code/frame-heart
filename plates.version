@@ -1,8 +1,8 @@
 # UTF-8
 VSVersionInfo(
   ffi=FixedFileInfo(
-    filevers=(1, 1, 1, 0),
-    prodvers=(1, 1, 1, 0),
+    filevers=(1, 2, 0, 0),
+    prodvers=(1, 2, 0, 0),
     mask=0x3F,
     flags=0x0,
     OS=0x40004,
@@ -17,13 +17,13 @@ VSVersionInfo(
           "040904B0",
           [
             StringStruct("CompanyName", "Inigo Joseph"),
-            StringStruct("FileDescription", "Plates Watermark Remover"),
-            StringStruct("FileVersion", "1.1.1"),
-            StringStruct("InternalName", "Plates"),
+            StringStruct("FileDescription", "Frame Heart Watermark Remover"),
+            StringStruct("FileVersion", "1.2.0"),
+            StringStruct("InternalName", "FrameHeart"),
             StringStruct("LegalCopyright", "Inigo Joseph"),
-            StringStruct("OriginalFilename", "Plates.exe"),
-            StringStruct("ProductName", "Plates"),
-            StringStruct("ProductVersion", "1.1.1"),
+            StringStruct("OriginalFilename", "FrameHeart.exe"),
+            StringStruct("ProductName", "Frame Heart"),
+            StringStruct("ProductVersion", "1.2.0"),
           ],
         )
       ]

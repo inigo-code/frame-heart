@@ -31,7 +31,7 @@ REALESRGAN_ZIP = (
     "realesrgan-ncnn-vulkan-20220424-windows.zip"
 )
 REALESRGAN_ZIP_SIZE = 45474481
-_USER_AGENT = f"Plates/{__version__}"
+_USER_AGENT = f"FrameHeart/{__version__}"
 _MIN_BIN = 10_000
 _LIGHT_BIN = 8 * 1024 * 1024
 _INDEX = "custom.json"

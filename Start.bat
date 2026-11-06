@@ -1,12 +1,12 @@
 @echo off
 setlocal
 cd /d "%~dp0"
-title Plates
+title Frame Heart
 
 if not "%~1"=="" goto source
 
-if exist "%~dp0portable\Plates\Plates.exe" (
-  start "" "%~dp0portable\Plates\Plates.exe"
+if exist "%~dp0portable\FrameHeart\FrameHeart.exe" (
+  start "" "%~dp0portable\FrameHeart\FrameHeart.exe"
   exit /b 0
 )
 

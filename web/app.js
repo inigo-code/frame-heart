@@ -31,7 +31,7 @@
     button.setAttribute("aria-expanded", open ? "true" : "false");
     document.getElementById("log-toggle-label").textContent = open ? "Hide" : "Show";
     try {
-      localStorage.setItem("plates-log-v2", open ? "open" : "closed");
+      localStorage.setItem("frameheart-log-v2", open ? "open" : "closed");
     } catch (error) {}
     if (open) {
       const pre = document.getElementById("log");
@@ -407,7 +407,7 @@
     });
     var stored = "closed";
     try {
-      stored = localStorage.getItem("plates-log-v2") || "closed";
+      stored = localStorage.getItem("frameheart-log-v2") || "closed";
     } catch (error) {}
     if (stored === "open") setLogOpen(true);
   }

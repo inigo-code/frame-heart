@@ -250,7 +250,7 @@ def test_2026_capture() -> None:
 
 def test_sample_folder() -> None:
     root = Path(__file__).resolve().parent / "portable"
-    folder = root / "Plates" / "Sample"
+    folder = root / "FrameHeart" / "Sample"
     if not folder.is_dir():
         folder = root / "Bulk AI Watermark Remover" / "Sample"
     if not folder.is_dir():
@@ -769,7 +769,7 @@ def test_video_pipeline() -> None:
     import video
     from video import _transcode
 
-    ffmpeg = Path(__file__).resolve().parent / "portable" / "Plates" / "tools" / "ffmpeg.exe"
+    ffmpeg = Path(__file__).resolve().parent / "portable" / "FrameHeart" / "tools" / "ffmpeg.exe"
     if not ffmpeg.is_file():
         found = video.find_ffmpeg()
         assert found is not None, "FFmpeg is not installed"
@@ -870,7 +870,7 @@ def test_video_mark_after_opening_frame() -> None:
     import video
     from video import _frame_at, process_video
 
-    ffmpeg = Path(__file__).resolve().parent / "portable" / "Plates" / "tools" / "ffmpeg.exe"
+    ffmpeg = Path(__file__).resolve().parent / "portable" / "FrameHeart" / "tools" / "ffmpeg.exe"
     if not ffmpeg.is_file():
         found = video.find_ffmpeg()
         assert found is not None, "FFmpeg is not installed"
@@ -1093,9 +1093,9 @@ def _session_download_and_settings(events, called, Session, shell_text) -> None:
     assert session.model_id == "anime"
 
     shell = shell_text()
-    assert "<title>Plates</title>" in shell
-    assert "<strong>Plates</strong>" in shell
-    assert "Made by Inigo" in shell
+    assert "<title>Frame Heart</title>" in shell
+    assert "<strong>Frame Heart</strong>" in shell
+    assert "A Heart App by Inigo" in shell
     assert 'id="compare"' in shell
     assert "Before and after" in shell
     assert "Settings" in shell
@@ -1105,12 +1105,12 @@ def _session_download_and_settings(events, called, Session, shell_text) -> None:
     assert "H.264" in shell
     assert 'id="bar"' in shell
     assert "Ready" in shell
-    assert "styles.css?v=20" in shell
-    assert "app.js?v=20" in shell
+    assert "styles.css?v=21" in shell
+    assert "app.js?v=21" in shell
     assert 'id="intro"' in shell
     assert "Originals stay where they are" in shell
     assert 'id="app-version"' in shell
-    assert "v1.1.1" in shell
+    assert "v1.2.0" in shell
     assert 'picturesOnly ? "Folder of images"' in shell
     assert "Drop images, videos, or a folder" in shell
     assert "is-log-collapsed" in shell

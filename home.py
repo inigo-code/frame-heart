@@ -6,21 +6,23 @@ import sys
 from pathlib import Path
 
 # Portable apps that write next to their exe. Sharing one folder mixes data\.
-_FAMILY = frozenset({"stills.exe", "rushes.exe", "plates.exe"})
+_FAMILY = frozenset({"stillheart.exe", "rushheart.exe", "frameheart.exe"})
+# The folders these apps used under their earlier names.
+_OLD_FOLDER = {"stillheart.exe": "Stills", "rushheart.exe": "Rushes", "frameheart.exe": "Plates"}
 _OWN = {
-    "rushes.exe": ("rushes.log", "rushes.log.old", "captures"),
-    "stills.exe": ("stills.log", "stills.log.old", "downloads", "gallery-dl.exe"),
-    "plates.exe": ("remover.log", "models", "tools"),
+    "rushheart.exe": ("rushheart.log", "rushheart.log.old", "rushes.log", "rushes.log.old", "captures"),
+    "stillheart.exe": ("stillheart.log", "stillheart.log.old", "stills.log", "stills.log.old", "downloads", "gallery-dl.exe"),
+    "frameheart.exe": ("frameheart.log", "remover.log", "models", "tools"),
 }
 _DATA = {
-    "rushes.exe": ("schedule.json", "diag.txt"),
-    "stills.exe": ("archive.sqlite3", "extractors.json", "scans.json"),
-    "plates.exe": (),
+    "rushheart.exe": ("schedule.json", "diag.txt"),
+    "stillheart.exe": ("archive.sqlite3", "extractors.json", "scans.json"),
+    "frameheart.exe": (),
 }
 _BIN = {
-    "rushes.exe": ("yt-dlp.exe", "yt-dlp.exe.old", "yt-dlp-download.exe"),
-    "stills.exe": ("gallery-dl.exe", "gallery-dl.exe.old"),
-    "plates.exe": (),
+    "rushheart.exe": ("yt-dlp.exe", "yt-dlp.exe.old", "yt-dlp-download.exe"),
+    "stillheart.exe": ("gallery-dl.exe", "gallery-dl.exe.old"),
+    "frameheart.exe": (),
 }
 
 
@@ -61,18 +63,30 @@ def _claim(folder: Path, home: Path, exe_name: str) -> None:
 def portable_home(exe: Path) -> Path:
     """Folder this portable exe should write into.
 
-    Plates.exe always uses a Plates folder. The same rule applies to Stills and
-    Rushes, whether or not the other apps are nearby. An exe that already sits
+    FrameHeart.exe always uses a FrameHeart folder. The same rule applies to
+    Still Heart and Rush Heart, whether or not the others are nearby. An exe that already sits
     inside a folder of its own name uses that folder.
     """
     exe = exe.resolve()
     folder = exe.parent
-    if exe.name.lower() not in _FAMILY or folder.name.lower() == exe.stem.lower():
+    name = exe.name.lower()
+    if name not in _FAMILY or folder.name.lower() == exe.stem.lower():
+        return folder
+    old = _OLD_FOLDER[name]
+    # An exe already inside its old folder stays there, with its data.
+    if folder.name.lower() == old.lower():
         return folder
     home = folder / exe.stem
     if home.exists() and not home.is_dir():
         return folder
-    _claim(folder, home, exe.name.lower())
+    legacy = folder / old
+    if legacy.is_dir() and not home.exists():
+        # Settings, models and history follow the app to its new name.
+        try:
+            legacy.rename(home)
+        except OSError:
+            return legacy
+    _claim(folder, home, name)
     try:
         home.mkdir(parents=True, exist_ok=True)
     except OSError:

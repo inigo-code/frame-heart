@@ -55,7 +55,7 @@ def tools_dir() -> Path:
         from home import home_dir
 
         return home_dir() / "tools"
-    portable = Path(__file__).resolve().parent / "portable" / "Plates" / "tools"
+    portable = Path(__file__).resolve().parent / "portable" / "FrameHeart" / "tools"
     if portable.is_dir():
         return portable
     return Path(__file__).resolve().parent / "tools"

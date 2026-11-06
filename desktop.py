@@ -1,6 +1,6 @@
 """Window for the remover.
 
-Plates shares the Spoolhouse look with Stills and Rushes. Watermark detection is
+Frame Heart shares the Heart Apps look with Still Heart and Rush Heart. Watermark detection is
 always automatic, so the window has no platform or layout choice. Model rows
 are redrawn in the page. Rebuilding native widgets after a download used to
 stop the window accepting input.
@@ -137,14 +137,15 @@ def _settings_path() -> Path:
     if override:
         return Path(override)
     base = Path(os.environ.get("LOCALAPPDATA", tempfile.gettempdir()))
-    current = base / "Plates" / "settings.json"
-    previous = base / "BulkAIWatermarkRemover" / "settings.json"
-    if not current.is_file() and previous.is_file():
-        try:
-            current.parent.mkdir(parents=True, exist_ok=True)
-            current.write_bytes(previous.read_bytes())
-        except OSError:
-            return previous
+    current = base / "Frame Heart" / "settings.json"
+    for older in ("Frame Heart", "BulkAIWatermarkRemover"):
+        previous = base / older / "settings.json"
+        if not current.is_file() and previous.is_file():
+            try:
+                current.parent.mkdir(parents=True, exist_ok=True)
+                current.write_bytes(previous.read_bytes())
+            except OSError:
+                return previous
     return current
 
 
@@ -1493,7 +1494,7 @@ def _message(text: str, yes_no: bool = False) -> bool:
     import ctypes
 
     flags = 0x10 | (0x4 if yes_no else 0)
-    return ctypes.windll.user32.MessageBoxW(None, text, "Plates", flags) == 6
+    return ctypes.windll.user32.MessageBoxW(None, text, "Frame Heart", flags) == 6
 
 
 def _bind_drops(window, api) -> None:
@@ -1529,7 +1530,7 @@ def launch() -> None:
         try:
             import ctypes
 
-            ctypes.windll.shell32.SetCurrentProcessExplicitAppUserModelID("Plates")
+            ctypes.windll.shell32.SetCurrentProcessExplicitAppUserModelID("FrameHeart")
         except Exception:
             pass
     os.environ.setdefault("WEBVIEW2_ADDITIONAL_BROWSER_ARGUMENTS", _ANTI_FLASH)
@@ -1550,7 +1551,7 @@ def launch() -> None:
     api = Api()
     page = (web_dir() / "index.html").resolve().as_uri()
     window = webview.create_window(
-        f"Plates {__version__}",
+        f"Frame Heart {__version__}",
         page,
         js_api=api,
         width=1120,
@@ -1561,7 +1562,7 @@ def launch() -> None:
     )
     window.events.closed += api.request_stop
     window.events.loaded += lambda: _bind_drops(window, api)
-    storage = Path(os.environ.get("LOCALAPPDATA", tempfile.gettempdir())) / "Plates" / "webview"
+    storage = Path(os.environ.get("LOCALAPPDATA", tempfile.gettempdir())) / "Frame Heart" / "webview"
     try:
         storage.mkdir(parents=True, exist_ok=True)
         storage_path = str(storage)

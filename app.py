@@ -1,4 +1,4 @@
-"""Plates.
+"""Frame Heart.
 
 Desktop app and command-line tool. Images are processed on this computer.
 Original files are never overwritten.
@@ -24,8 +24,8 @@ TASKS = ("clean", "upscale")
 
 def _log_path() -> Path:
     if getattr(sys, "frozen", False):
-        return home.home_dir() / "remover.log"
-    return Path(__file__).resolve().parent / "remover.log"
+        return home.home_dir() / "frameheart.log"
+    return Path(__file__).resolve().parent / "frameheart.log"
 
 
 def _write_log(text: str) -> None:
@@ -127,10 +127,10 @@ def format_summary(
 
 def cli(argv: list[str]) -> int:
     parser = argparse.ArgumentParser(
-        prog="Plates",
+        prog="Frame Heart",
         description="Remove a visible AI corner watermark from images and videos, or upscale images. Originals are not modified.",
     )
-    parser.add_argument("--version", action="version", version=f"Plates {__version__}")
+    parser.add_argument("--version", action="version", version=f"Frame Heart {__version__}")
     parser.add_argument("input", type=Path, help="Image, video, or folder")
     parser.add_argument("output", type=Path, nargs="?", help="Destination file or folder")
     parser.add_argument("--mode", choices=MODES, default="auto", help="Gemini layout: auto, standard, or current")
