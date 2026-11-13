@@ -1,10 +1,10 @@
 # Frame Heart
 
-![The Frame Heart window, with a before and after viewer](https://inigo-code.github.io/frame-heart-site/assets/remove-wide.webp)
+![The Frame Heart window, with a before and after viewer](https://heartapps.github.io/frame-heart/assets/remove-wide.webp)
 
 Version **1.2.4**.
 
-A portable Windows app that finds and removes a visible corner watermark on AI images and videos, and can enlarge images with Real-ESRGAN. One of the [Heart Apps](https://inigo-code.github.io/).
+A portable Windows app that finds and removes a visible corner watermark on AI images and videos, and can enlarge images with Real-ESRGAN. One of the [Heart Apps](https://heartapps.github.io/).
 
 It handles the Gemini sparkle, and the corner labels from Grok, Doubao, Jimeng, Tongyi, Qwen, Kling, Wenxin, and Veo. It works particularly well on images and videos made with Gemini. Detection is automatic. The Gemini mark is reversed, so the pixels underneath are restored. A label is rebuilt from the pixels around it. It does not touch SynthID or other invisible provenance marks.
 
@@ -82,4 +82,4 @@ This code is published so you can read it and build it yourself. All rights rese
 
 The bundled Photo and Anime models in `assets/models` aren't in this repository because of their size. Add them from the Real-ESRGAN ncnn release before building, or the app will offer only the models it can download.
 
-Downloads and the website: [Frame Heart](https://inigo-code.github.io/frame-heart-site/). Bugs and ideas: inigo@tosstheworld.org.
+Downloads and the website: [Frame Heart](https://heartapps.github.io/frame-heart/). Bugs and ideas: inigo@tosstheworld.org.
